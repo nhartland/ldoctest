@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 --- ldoctest.py
 -- This script parses lua files passed as input and executes all code within
 -- `ldoc` style @usage blocks in order to test its validity.
@@ -11,13 +12,12 @@
 --
 -- Limitations:
 -- Lua block-style comments are not supported
--- There may be many more, this is a bit of a quick-and-dirty attempt at the idea
+-- There may be many more, this is just a quick attempt at the idea
 --
 -- Requirements:
 -- Lua 5.3
 --
--- Usage: lua ldoctest.lua ./*.lua
-local args = {...}
+-- Usage: ldoctest ./*.lua
 
 -- Extract all contiguous comment blocks from a file
 local function extract_comment_blocks(filename)
@@ -76,7 +76,10 @@ local function load_env()
     end
 end
 
+-- Fetch command line args and locally specified environment
+local args = {...}
 local ENV = load_env()
+
 local file_tests = {} -- List of test example code per file
 local total_tests = 0 -- Total number of tests
 for _, filename in ipairs(args) do -- Loop over arguments and parse them for example code
@@ -86,6 +89,18 @@ for _, filename in ipairs(args) do -- Loop over arguments and parse them for exa
         file_tests[filename] = usage
         total_tests = total_tests + #usage
     end
+end
+
+-- Handle no-arguments
+if #args == 0 then
+    print("Usage:")
+    print("   ldoctest <file_path>")
+    os.exit(0)
+end
+
+if total_tests == 0 then
+    print("No documentation tests found")
+    os.exit(0)
 end
 
 -- TAP format initialiser (1 .. N)
